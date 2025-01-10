@@ -1,4 +1,5 @@
-import 'package:ai_chat/home_page.dart';
+import 'package:ai_chat/splash_screen.dart';
+import 'package:ai_chat/theme.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -13,11 +14,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const HomePage(),
+      theme: lightMode,
+      darkTheme: darkMode,
+      home: const SplashScreen(),
     );
   }
 }
