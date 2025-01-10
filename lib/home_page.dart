@@ -42,6 +42,10 @@ class _HomePageState extends State<HomePage> {
               )
             ],
           ),
+          actions: [
+                              IconButton(onPressed: () {}, icon: Icon(Icons.brightness_6))
+
+          ],
         ),
         body: Column(
           children: [
@@ -58,8 +62,9 @@ class _HomePageState extends State<HomePage> {
                         child: Container(
                           padding: EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color:
-                                message.isUser ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.secondary,
+                            color: message.isUser
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.secondary,
                             borderRadius: message.isUser
                                 ? BorderRadius.only(
                                     topLeft: Radius.circular(20),
@@ -72,10 +77,10 @@ class _HomePageState extends State<HomePage> {
                                     bottomRight: Radius.circular(20),
                                   ),
                           ),
-                          child: Text(
-                            message.text,
-                            style: message.isUser ? Theme.of(context).textTheme.bodyMedium : Theme.of(context).textTheme.bodySmall
-                          ),
+                          child: Text(message.text,
+                              style: message.isUser
+                                  ? Theme.of(context).textTheme.bodyMedium
+                                  : Theme.of(context).textTheme.bodySmall),
                         ),
                       ),
                     );
@@ -103,9 +108,10 @@ class _HomePageState extends State<HomePage> {
                         style: Theme.of(context).textTheme.titleSmall,
                         decoration: InputDecoration(
                             hintText: "Write your message...",
-                            hintStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
-                              color: Colors.grey
-                            ),
+                            hintStyle: Theme.of(context)
+                                .textTheme
+                                .titleSmall!
+                                .copyWith(color: Colors.grey),
                             border: InputBorder.none,
                             contentPadding:
                                 EdgeInsets.symmetric(horizontal: 20)),
