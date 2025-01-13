@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, avoid_unnecessary_containers, prefer_const_literals_to_create_immutables, sized_box_for_whitespace, depend_on_referenced_packages, avoid_print
+// ignore_for_file: prefer_const_constructors, avoid_unnecessary_containers, prefer_const_literals_to_create_immutables, sized_box_for_whitespace, depend_on_referenced_packages, avoid_print, prefer_final_fields, unused_field
 
 import 'package:ai_chat/message.dart';
 import 'package:ai_chat/themeNotifier.dart';
@@ -19,16 +19,27 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   final TextEditingController _controller = TextEditingController();
 
-  callGeminiApi() async {
-    try {
-      if (_controller.text.isNotEmpty) {
-        _messages.add(Message(text: _controller.text, isUser: true));
-      }
+  final ScrollController _scrollController = ScrollController();
 
+  bool _isLoading = false;
+
+  callGeminiApi() async {
+    if (_controller.text.isEmpty) {
+      return;
+    }
+
+    final prompt = _controller.text.trim();
+
+    setState(() {
+      _isLoading = true;
+      _messages.add(Message(text: prompt, isUser: true));
+    });
+
+    _controller.clear();
+
+    try {
       final api = GenerativeModel(
           model: 'gemini-pro', apiKey: dotenv.env['GOOGLE_API_KEY']!);
-
-      final prompt = _controller.text.trim();
 
       final content = [Content.text(prompt)];
 
@@ -36,11 +47,23 @@ class _HomePageState extends ConsumerState<HomePage> {
 
       setState(() {
         _messages.add(Message(text: response.text!, isUser: false));
-      });
+      });  
 
-      _controller.clear();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
     } catch (e) {
       print("----------------------ERROR: $e------------------------");
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -49,7 +72,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: AppBar(
-          centerTitle: false,
+          centerTitle: true,
           backgroundColor: Theme.of(context).colorScheme.surface,
           elevation: 1,
           title: Row(
@@ -62,6 +85,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                     width: 50,
                     child: Image.asset("assets/bard.png"),
                   ),
+                  SizedBox(width: 20),
+                  Text(
+                    "Chat AI",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  )
                 ],
               )
             ],
@@ -78,6 +106,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           children: [
             Expanded(
               child: ListView.builder(
+                controller: _scrollController,
                   itemCount: _messages.length,
                   itemBuilder: (context, index) {
                     final message = _messages[index];
@@ -91,7 +120,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                           decoration: BoxDecoration(
                             color: message.isUser
                                 ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).colorScheme.secondary,
+                                : Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.white
+                                    : Colors.grey[400],
                             borderRadius: message.isUser
                                 ? BorderRadius.only(
                                     topLeft: Radius.circular(20),
@@ -134,22 +166,26 @@ class _HomePageState extends ConsumerState<HomePage> {
                         controller: _controller,
                         style: Theme.of(context).textTheme.titleSmall,
                         decoration: InputDecoration(
-                            hintText: "Write your message...",
-                            hintStyle: Theme.of(context)
-                                .textTheme
-                                .titleSmall!
-                                .copyWith(color: Colors.grey),
-                            border: InputBorder.none,
-                            contentPadding:
-                                EdgeInsets.symmetric(horizontal: 20)),
+                          hintText: "Write your message...",
+                          hintStyle: Theme.of(context)
+                              .textTheme
+                              .titleSmall!
+                              .copyWith(color: Colors.grey),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(horizontal: 20),
+                        ),
+                        maxLines: null,
+                        minLines: 1,
                       ),
                     ),
                     SizedBox(width: 8),
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: GestureDetector(
-                        onTap: callGeminiApi,
-                        child: Image.asset("assets/send.png"),
+                        onTap: _isLoading ? null : callGeminiApi,
+                        child: _isLoading
+                            ? CircularProgressIndicator()
+                            : Image.asset("assets/send.png"),
                       ),
                     )
                   ],
