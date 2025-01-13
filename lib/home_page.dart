@@ -1,16 +1,19 @@
 // ignore_for_file: prefer_const_constructors, avoid_unnecessary_containers, prefer_const_literals_to_create_immutables, sized_box_for_whitespace
 
 import 'package:ai_chat/message.dart';
+import 'package:ai_chat/themeNotifier.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class HomePage extends StatefulWidget {
+
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends ConsumerState<HomePage> {
   final List<Message> _messages = [
     Message(text: "Hi", isUser: true),
     Message(text: "Hello how are you?", isUser: false),
@@ -43,7 +46,9 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           actions: [
-                              IconButton(onPressed: () {}, icon: Icon(Icons.brightness_6))
+                              IconButton(onPressed: () {
+                                ref.read(themeProvider.notifier).toggleTheme();
+                              }, icon: Icon(Icons.brightness_6))
 
           ],
         ),
