@@ -1,10 +1,11 @@
-// ignore_for_file: prefer_const_constructors, avoid_unnecessary_containers, prefer_const_literals_to_create_immutables, sized_box_for_whitespace
+// ignore_for_file: prefer_const_constructors, avoid_unnecessary_containers, prefer_const_literals_to_create_immutables, sized_box_for_whitespace, depend_on_referenced_packages, avoid_print
 
 import 'package:ai_chat/message.dart';
 import 'package:ai_chat/themeNotifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -14,14 +15,34 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
-  final List<Message> _messages = [
-    Message(text: "Hi", isUser: true),
-    Message(text: "Hello how are you?", isUser: false),
-    Message(text: "Nothing much here", isUser: true),
-    Message(text: "Ok", isUser: false),
-  ];
+  final List<Message> _messages = [];
 
   final TextEditingController _controller = TextEditingController();
+
+  callGeminiApi() async {
+    try {
+      if (_controller.text.isNotEmpty) {
+        _messages.add(Message(text: _controller.text, isUser: true));
+      }
+
+      final api = GenerativeModel(
+          model: 'gemini-pro', apiKey: dotenv.env['GOOGLE_API_KEY']!);
+
+      final prompt = _controller.text.trim();
+
+      final content = [Content.text(prompt)];
+
+      final response = await api.generateContent(content);
+
+      setState(() {
+        _messages.add(Message(text: response.text!, isUser: false));
+      });
+
+      _controller.clear();
+    } catch (e) {
+      print("----------------------ERROR: $e------------------------");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,10 +67,11 @@ class _HomePageState extends ConsumerState<HomePage> {
             ],
           ),
           actions: [
-                              IconButton(onPressed: () {
-                                ref.read(themeProvider.notifier).toggleTheme();
-                              }, icon: Icon(Icons.brightness_6))
-
+            IconButton(
+                onPressed: () {
+                  ref.read(themeProvider.notifier).toggleTheme();
+                },
+                icon: Icon(Icons.brightness_6))
           ],
         ),
         body: Column(
@@ -126,7 +148,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: GestureDetector(
-                        onTap: () {},
+                        onTap: callGeminiApi,
                         child: Image.asset("assets/send.png"),
                       ),
                     )
